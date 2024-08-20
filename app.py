@@ -4,18 +4,19 @@ from scipy.integrate import solve_ivp
 
 app = Flask(__name__)
 
-L = 2000  # Egg laying rate (eggs/day)
-W = 5000  # Number of hive bees for 50% egg survival
-R_b = 0.25  # Baseline recruitment rate (per day)
-alpha_f = 0.25  # Additional recruitment in absence of food (per day)
-alpha_F = 0.75  # Effect of excess foragers on recruitment (per day)
-m = 0.14  # Natural death rate of foragers (per day)
-m_w = 0.0056  # Natural death rate of foragers and hive bees in winter (per day)
-b = 500  # Mass of food stored for 50% egg survival (g)
-c = 0.1  # Food gathered per day per forager (g/day)
+# L = 2000  # Egg laying rate (eggs/day)
+# W = 5000  # Number of hive bees for 50% egg survival
+# R_b = 0.25  # Baseline recruitment rate (per day)
+# alpha_f = 0.25  # Additional recruitment in absence of food (per day)
+# alpha_F = 0.75  # Effect of excess foragers on recruitment (per day)
+# m = 0.14  # Natural death rate of foragers (per day)
+# m_w = 0.0056  # Natural death rate of foragers and hive bees in winter (per day)
+# b = 500  # Mass of food stored for 50% egg survival (g)
+# c = 0.1  # Food gathered per day per forager (g/day)
 
 # begin outline for write up, dw about order or anything specific
 # gh repo for code
+
 
 def beta_function(t, kappa, beta_value):
     if t < kappa:
@@ -30,11 +31,22 @@ def index():
 
 @app.route("/simulate", methods=["POST"])
 def simulate():
+    # Parameters
+    L = float(request.form.get("L"))
+    W = float(request.form.get("W"))
+    R_b = float(request.form.get("R_b"))
+    alpha_f = float(request.form.get("alpha_f"))
+    alpha_F = float(request.form.get("alpha_F"))
+    m = float(request.form.get("m"))
+    m_w = float(request.form.get("m_w"))
+    b = float(request.form.get("b"))
+    c = float(request.form.get("c"))
+
     gamma = float(request.form.get("gamma"))
     dH = float(request.form.get("dH"))
     dF = float(request.form.get("dF"))
     beta_value = float(request.form.get("beta"))
-    kappa = int(request.form.get("kappa"))
+    kappa = float(request.form.get("kappa"))
 
     # Initial conditions
     H_S0 = 3.4e4  # Initial susceptible hive bee population
@@ -59,8 +71,6 @@ def simulate():
         S = (H_S + H_I) / (W + H_S + H_I) * (f / (b + f))
         R = Rb + af * (b / (b + f)) - aF * (F_I + F_S) / N
 
-            
-
         if is_active_season:
             dH_S_dt = L * S - H_S * R - (beta * H_I + beta * F_I) * H_S
             dH_I_dt = (beta * H_I + beta * F_I) * H_S - H_I * R - dH * H_I
@@ -81,8 +91,8 @@ def simulate():
         dF_I_dt = max(dF_I_dt, -F_I)
         df_dt = max(df_dt, -f)
 
-        if t == 90:
-            df_dt = -10000
+        if t >= 130 and t <= 135:
+            df_dt = -f
 
         return [dH_S_dt, dH_I_dt, dF_S_dt, dF_I_dt, df_dt]
 

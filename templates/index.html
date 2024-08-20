@@ -7,30 +7,78 @@
   <title>Bee Population Simulator</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* make all inputs 70px wide */
+    input {
+      width: 70px;
+    }
+  </style>
 </head>
 
 <body>
   <h1>Bee Population Simulator</h1>
   <div>
-    <label for="gamma">Gamma (daily food requirement per adult bee g/day):</label>
-    <input type="number" id="gamma" name="gamma" value="0.007">
+    <input type="numeric" id="gamma" name="gamma" value="0.007">
+    <label for="gamma">gamma, Daily food requirement per adult bee g/day</label>
   </div>
   <div>
-    <label for="dH">dH (death rate of hive bee 1/day):</label>
-    <input type="number" id="dH" name="dH" value="0.2">
+    <input type="numeric" id="dH" name="dH" value="0.2">
+    <label for="dH">dH, death rate of hive bee 1/day</label>
   </div>
   <div>
-    <label for="dF">dF (death rate of forager bee 1/day):</label>
-    <input type="number" id="dF" name="dF" value="0.2">
+    <input type="numeric" id="dF" name="dF" value="0.2">
+    <label for="dF">dF, Death rate of forager bee 1/day</label>
   </div>
   <div>
-    <label for="beta">Beta (disease transmission rate, between all types of bees):</label>
-    <input type="number" id="beta" name="beta" value="0.00005">
+    <input type="numeric" id="beta" name="beta" value="0.00005">
+    <label for="beta">beta, Disease transmission rate, between all types of bees</label>
   </div>
   <div>
-    <label for="kappa">Kappa (start disease transmission date):</label>
-    <input type="number" id="kappa" name="kappa" value="100">
+    <input type="numeric" id="kappa" name="kappa" value="100">
+    <label for="kappa">kappa, Start disease transmission date</label>
   </div>
+  <div>
+    <input type="numeric" id="L" name="L" value="2000">
+    <label for="L">L, Egg laying rate (eggs/day)</label>
+  </div>
+  <div>
+    <input type="numeric" id="W" name="W" value="5000">
+    <label for="W">W, Number of hive bees for 50% egg survival</label>
+  </div>
+  <div>
+    <input type="numeric" id="R_b" name="R_b" value="0.25">
+    <label for="R_b">R_b, Baseline recruitment rate (per day)</label>
+  </div>
+  <div>
+    <input type="numeric" id="alpha_f" name="alpha_f" value="0.25">
+    <label for="alpha_f">alpha_f, Additional recruitment in absence of food (per day)</label>
+  </div>
+  <div>
+    <input type="numeric" id="alpha_F" name="alpha_F" value="0.75">
+    <label for="alpha_F">alpha_F, Effect of excess foragers on recruitment (per day)</label>
+  </div>
+  <div>
+    <input type="numeric" id="m" name="m" value="0.14">
+    <label for="m">m, Natural death rate of foragers (per day)</label>
+  </div>
+  <div>
+    <input type="numeric" id="m_w" name="m_w" value="0.0056">
+    <label for="m_w">m_w, Natural death rate of foragers and hive bees in winter (per day)</label>
+  </div>
+  <div>
+    <input type="numeric" id="m_s" name="m_s" value="0.0056">
+    <label for="m_s">m_s, Natural death rate of foragers and hive bees in summer (per day)</label>
+  </div>
+  <div>
+    <input type="numeric" id="b" name="b" value="500">
+    <label for="b">b, Mass of food stored for 50% egg survival (g)</label>
+  </div>
+  <div>
+    <input type="numeric" id="c" name="c" value="0.1">
+    <label for="c">c, Food gathered per day per forager (g/day)</label>
+  </div>
+
+
   <div id="graph-container" style="width: 80%; margin: auto;">
     <canvas id="beeChart"></canvas>
   </div>
@@ -47,7 +95,19 @@
           dH: $('#dH').val(),
           dF: $('#dF').val(),
           beta: $('#beta').val(),
-          kappa: $('#kappa').val()
+          kappa: $('#kappa').val(),
+
+          L: $('#L').val(),
+          W: $('#W').val(),
+          R_b: $('#R_b').val(),
+          alpha_f: $('#alpha_f').val(),
+          alpha_F: $('#alpha_F').val(),
+          m: $('#m').val(),
+          m_w: $('#m_w').val(),
+          m_s: $('#m_s').val(),
+          b: $('#b').val(),
+          c: $('#c').val(),
+
         },
         success: function (response) {
           if (response.data) {
@@ -56,7 +116,11 @@
             alert(response.error);
           }
         },
-        error: function () {
+        error: function (e) {
+          console.log(e)
+          if (e.responseText.includes("Error: could not convert")) {
+            alert('Please enter valid numbers for all parameters.');
+          }
           alert('An error occurred while updating the graph.');
         }
       });
@@ -115,7 +179,7 @@
           datasets: []
         },
         options: {
-          animation: false,
+          animation: true,
           responsive: true,
           plugins: {
             title: {
@@ -130,6 +194,7 @@
             }
           },
           interaction: {
+            mode: 'index',
             intersect: false,
           },
           scales: {
@@ -200,4 +265,3 @@
 </body>
 
 </html>
-f
