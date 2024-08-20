@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bee Population Simulator</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <h1>Bee Population Simulator</h1>
+  <div>
+    <label for="gamma">Gamma (daily food requirement per adult bee g/day):</label>
+    <input type="number" id="gamma" name="gamma" value="0.007">
+  </div>
+  <div>
+    <label for="dH">dH (death rate of hive bee 1/day):</label>
+    <input type="number" id="dH" name="dH" value="0.2">
+  </div>
+  <div>
+    <label for="dF">dF (death rate of forager bee 1/day):</label>
+    <input type="number" id="dF" name="dF" value="0.2">
+  </div>
+  <div>
+    <label for="beta">Beta (disease transmission rate, between all types of bees):</label>
+    <input type="number" id="beta" name="beta" value="0.00005">
+  </div>
+  <div>
+    <label for="kappa">Kappa (start disease transmission date):</label>
+    <input type="number" id="kappa" name="kappa" value="100">
+  </div>
+  <div id="graph-container" style="width: 80%; margin: auto;">
+    <canvas id="beeChart"></canvas>
+  </div>
+
+  <script>
+    let chart;
+
+    function updateGraph() {
+      $.ajax({
+        url: '/simulate',
+        type: 'POST',
+        data: {
+          gamma: $('#gamma').val(),
+          dH: $('#dH').val(),
+          dF: $('#dF').val(),
+          beta: $('#beta').val(),
+          kappa: $('#kappa').val()
+        },
+        success: function (response) {
+          if (response.data) {
+            updateChartData(response.data);
+          } else if (response.error) {
+            alert(response.error);
+          }
+        },
+        error: function () {
+          alert('An error occurred while updating the graph.');
+        }
+      });
+    }
+
+    function updateChartData(data) {
+      chart.data.labels = data.time;
+      chart.data.datasets = [
+        {
+          label: 'Susceptible Hive Bees',
+          data: data.H_S,
+          borderColor: 'blue',
+          fill: false,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Susceptible Forager Bees',
+          data: data.F_S,
+          borderColor: 'blue',
+          borderDash: [5, 5],
+          fill: false,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Infected Hive Bees',
+          data: data.H_I,
+          borderColor: 'red',
+          fill: false,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Infected Forager Bees',
+          data: data.F_I,
+          borderColor: 'red',
+          borderDash: [5, 5],
+          fill: false,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Honey (g)',
+          data: data.f,
+          borderColor: 'orange',
+          fill: false,
+          yAxisID: 'y1'
+        }
+      ];
+      chart.update();
+    }
+
+    $(document).ready(function () {
+      const ctx = document.getElementById('beeChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          animation: false,
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Bee Populations Over Time',
+              font: {
+                size: 18
+              }
+            },
+            legend: {
+              position: 'top',
+            }
+          },
+          interaction: {
+            intersect: false,
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              display: true,
+              title: {
+                display: true,
+                text: 'Time (days)'
+              },
+              ticks: {
+                stepSize: 50,
+                max: 250
+              }
+            },
+            y: {
+              type: 'linear',
+              grace: 0,
+              display: true,
+              title: {
+                display: true,
+                text: 'Population'
+              },
+              beginAtZero: true,
+              suggestedMin: 0,
+              min: 0,
+            },
+            y1: {
+              type: 'linear',
+              grace: 0,
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Honey (g)'
+              },
+              grid: {
+                drawOnChartArea: false
+              }
+            }
+          },
+          elements: {
+            point: {
+              radius: 0
+            }
+          }
+        },
+        plugins: [{
+          beforeDraw: chart => {
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            const winterStart = xAxis.getPixelForValue(200);
+            const winterEnd = xAxis.getPixelForValue(250);
+
+            ctx.save();
+            ctx.fillStyle = 'rgba(220, 220, 220, 0.5)';
+            ctx.fillRect(winterStart, yAxis.top, winterEnd - winterStart, yAxis.bottom - yAxis.top);
+            ctx.restore();
+          }
+        }]
+      });
+
+      $('input').on('change', updateGraph);
+      updateGraph(); // Initial graph update
+    });
+  </script>
+</body>
+
+</html>
+f
