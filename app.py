@@ -41,30 +41,43 @@ def simulate():
     m_w = float(request.form.get("m_w"))
     b = float(request.form.get("b"))
     c = float(request.form.get("c"))
+    c_I = float(request.form.get("c_I"))
 
     gamma = float(request.form.get("gamma"))
+    gamma_I = float(request.form.get("gamma_I"))
     dH = float(request.form.get("dH"))
     dF = float(request.form.get("dF"))
     beta_value = float(request.form.get("beta"))
     kappa = float(request.form.get("kappa"))
 
     # Initial conditions
-    H_S0 = 3.4e4  # Initial susceptible hive bee population
-    H_I0 = 100  # Initial infected hive bee population
-    F_S0 = 1.2e4  # Initial susceptible forager bee population
-    F_I0 = 100  # Initial infected forager bee population
-    f0 = 1000  # Initial amount of food
+    # H_S0 = 3.4e4  # Initial susceptible hive bee population
+    # H_I0 = 100  # Initial infected hive bee population
+    # F_S0 = 1.2e4  # Initial susceptible forager bee population
+    # F_I0 = 100  # Initial infected forager bee population
+    # f0 = 1000  # Initial amount of food
+
+    H_S0 = float(request.form.get("H_S0"))
+    H_I0 = float(request.form.get("H_I0"))
+    F_S0 = float(request.form.get("F_S0"))
+    F_I0 = float(request.form.get("F_I0"))
+    f0 = float(request.form.get("f0"))
 
     # Time points (in days)
-    days = 250
+    days = 450
+    # days = 350
     t = np.linspace(0, days, days * 4)
 
     # Differential equations
     def deriv(t, y, L, W, Rb, af, aF, m, b, c, gamma, dH, dF, m_w, beta_value):
         H_S, H_I, F_S, F_I, f = y
 
-        is_active_season = t < 200 or t > 250
+        is_active_season = t < 150 or t > 250
         beta = beta_function(t, kappa, beta_value)
+
+        if t > 130:
+            beta = 0.00001
+        #     beta = 0.000005
 
         N = H_S + H_I + F_S + F_I
 
@@ -91,8 +104,29 @@ def simulate():
         dF_I_dt = max(dF_I_dt, -F_I)
         df_dt = max(df_dt, -f)
 
-        if t >= 130 and t <= 135:
-            df_dt = -f
+        if t > 80:
+            if H_S <= 1:
+                dH_S_dt = 0
+                H_S = 0
+
+            if H_I <= 1:
+                dH_I_dt = 0
+                H_I = 0
+
+            if F_S <= 1:
+                dF_S_dt = 0
+                F_S = 0
+
+            if F_I <= 1:
+                dF_I_dt = 0
+                F_I = 0
+
+            if f <= 1:
+                df_dt = 0
+                f = 0
+
+        # if t >= 130 and t <= 132:
+        #     df_dt = -f + f0
 
         return [dH_S_dt, dH_I_dt, dF_S_dt, dF_I_dt, df_dt]
 

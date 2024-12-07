@@ -17,24 +17,55 @@
 
 <body>
   <h1>Bee Population Simulator</h1>
+  initial conditions:<br />
+  <div>
+    <input type="numeric" id="H_S0" name="H_S0" value="33000">
+    <label for="H_S0">H_S0, Initial susceptible hive bee population</label>
+  </div>
+
+  <div>
+    <input type="numeric" id="H_I0" name="H_I0" value="100">
+    <label for="H_I0">H_I0, Initial infected hive bee population</label>
+  </div>
+
+  <div>
+    <input type="numeric" id="F_S0" name="F_S0" value="12000">
+    <label for="F_S0">F_S0, Initial susceptible forager bee population</label>
+  </div>
+
+  <div>
+    <input type="numeric" id="F_I0" name="F_I0" value="100">
+    <label for="F_I0">F_I0, Initial infected forager bee population</label>
+  </div>
+
+  <div>
+    <input type="numeric" id="f0" name="f0" value="10000">
+    <label for="f0">f0, Initial amount of food</label>
+  </div>
+  other variables:<br />
   <div>
     <input type="numeric" id="gamma" name="gamma" value="0.007">
-    <label for="gamma">gamma, Daily food requirement per adult bee g/day</label>
+    <label for="gamma">gamma, Daily food requirement per adult healthy bee g/day</label>
+  </div>
+
+  <div>
+    <input type="numeric" id="gamma_I" name="gamma_I" value="0.011">
+    <label for="gamma_I">gamma_I, Daily food requirement per adult sick bee g/day</label>
   </div>
   <div>
     <input type="numeric" id="dH" name="dH" value="0.2">
-    <label for="dH">dH, death rate of hive bee 1/day</label>
+    <label for="dH">dH, death rate of infected hive bee 1/day</label>
   </div>
   <div>
     <input type="numeric" id="dF" name="dF" value="0.2">
-    <label for="dF">dF, Death rate of forager bee 1/day</label>
+    <label for="dF">dF, death rate of infected forager bee 1/day</label>
   </div>
   <div>
     <input type="numeric" id="beta" name="beta" value="0.00005">
     <label for="beta">beta, Disease transmission rate, between all types of bees</label>
   </div>
   <div>
-    <input type="numeric" id="kappa" name="kappa" value="100">
+    <input type="numeric" id="kappa" name="kappa" value="50">
     <label for="kappa">kappa, Start disease transmission date</label>
   </div>
   <div>
@@ -75,9 +106,12 @@
   </div>
   <div>
     <input type="numeric" id="c" name="c" value="0.1">
-    <label for="c">c, Food gathered per day per forager (g/day)</label>
+    <label for="c">c, Food gathered per day per healthy forager (g/day)</label>
   </div>
-
+  <div>
+    <input type="numeric" id="c_I" name="c_I" value="0">
+    <label for="c_I">c_I, Food gathered per day per sick forager (g/day)</label>
+  </div>
 
   <div id="graph-container" style="width: 80%; margin: auto;">
     <canvas id="beeChart"></canvas>
@@ -91,7 +125,14 @@
         url: '/simulate',
         type: 'POST',
         data: {
+          H_S0: $('#H_S0').val(),
+          H_I0: $('#H_I0').val(),
+          F_S0: $('#F_S0').val(),
+          F_I0: $('#F_I0').val(),
+          f0: $('#f0').val(),
+
           gamma: $('#gamma').val(),
+          gamma_I: $('#gamma_I').val(),
           dH: $('#dH').val(),
           dF: $('#dF').val(),
           beta: $('#beta').val(),
@@ -107,7 +148,7 @@
           m_s: $('#m_s').val(),
           b: $('#b').val(),
           c: $('#c').val(),
-
+          c_I: $('#c_I').val(),
         },
         success: function (response) {
           if (response.data) {
@@ -247,7 +288,7 @@
             const ctx = chart.ctx;
             const xAxis = chart.scales.x;
             const yAxis = chart.scales.y;
-            const winterStart = xAxis.getPixelForValue(200);
+            const winterStart = xAxis.getPixelForValue(150);
             const winterEnd = xAxis.getPixelForValue(250);
 
             ctx.save();
